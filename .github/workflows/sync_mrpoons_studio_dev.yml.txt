@@ -1,0 +1,38 @@
+---
+name: Sync mrpoons.studio.dev
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync-mrpoons-studio-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@mqin
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.SYNC_MRPOONS_STUDIO_DEV_TOKEN }}
+      - name: Sync mrpoons.studio.dev
+        if: github.repository == 'mrpoons-studio/mrpoons.studio.dev'
+        run: |
+                git config --global user.mrpoons-studio.name 'Mr. Poon's Studio'
+                git config --global user.mrpoons-studio.username 'mrpoons-studio'
+                git config --global user.mrpoons-studio.email '23336645+codenamedpkt@users.noreply.github.com'
+
+                # Add mrpoons-studio/mrpoons-studio.github.io as upstrem and fetch it
+                echo "Adding upstream"
+                git remote add upstream https://github.com/mrpoons-studio/mrpoons-studio.github.io
+                git fetch upstream
+
+                # Switch to mirror branch
+                echo "Checking out mirror branch"
+                git checkout mirror
+
+                # Rebase upstream/master over mirror branch and keep CNAME(termux.com) file
+                echo "Rebase upstream/master"
+                git rebase --strategy-option=theirs upstream/master
+
+                # Push branch
+                echo "Pushing mirror branch"
+                git push -f origin mirror
